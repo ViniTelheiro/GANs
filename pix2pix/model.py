@@ -57,7 +57,7 @@ class Generator(nn.Module):
         )
 
         self.upsamplig = nn.Sequential(
-            decode(512*2, 512, 4, apply_dropout=True),
+            decode(512, 512, 4, apply_dropout=True),
             decode(512*2, 512, 4, apply_dropout=True),
             decode(512*2, 512, 4, apply_dropout=True),
             decode(512*2, 512, 4),
@@ -67,7 +67,7 @@ class Generator(nn.Module):
         )
 
         self.last = nn.Sequential(
-            nn.ConvTranspose2d(64, 3, 4, stride=2, padding=1, bias=False),
+            nn.ConvTranspose2d(128, 3, 4, stride=2, padding=1, bias=False),
             nn.Tanh()
             )    
 
@@ -79,9 +79,13 @@ class Generator(nn.Module):
             acts.append(x[:])
         
         
-        for a, layer in zip(acts[::-1], self.upsamplig):
-            x = torch.cat([x.clone(), a], dim=1)
+        for a, layer in zip(acts[::-1][1:], self.upsamplig):
             x = layer(x)
+            print(f'shape of x: {x.shape}')
+            print(f'shape of a: {a.shape}')
+            print()
+
+            x = torch.cat([x.clone(), a], dim=1)
         
         x = self.last(x)
         return x
